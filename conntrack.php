@@ -40,7 +40,7 @@ function sample($count=60, $interval=1)
 	}
 
 	$avg = round($total / $count);
-	debug(sprintf("%s   average: %d", date("H:m"), $avg), 3);
+	debug(sprintf("%s   average: %d", date("H:M"), $avg), 3);
 
 	return $avg;
 }
