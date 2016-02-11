@@ -1,13 +1,22 @@
 <?php
 
+require_once 'vendor/autoload.php';
 require_once 'butts.php';
+include_once 'config.php';
 
 $min =       true;
 $max =       true;
 $avg =       0;
 $count =     0;
-$total     = 0;
+$total =     0;
 $total_avg = 0;
+
+
+
+if (isset($argv[1]) and ($argv[1] === 'sql'))
+	$format = 'sql';
+else
+	$format = 'json';
 
 
 function minmax($i)
@@ -26,7 +35,8 @@ function get_connections()
 		return intval($conns);
 	}
 	else {
-		return rand(1989, 1998);
+		// debug
+		return rand(1, 100);
 	}
 }
 
@@ -62,18 +72,57 @@ function sample($n=10, $interval=1)
 	array_map('get_averages', $sample);
 }
 
+function sql_insert($data)
+{
+	global $sql;
+
+	try {
+		$pdo = new PDO("mysql:host={$sql['host']};dbname={$sql['schema']}",
+						 $sql['user'], $sql['pass']);
+
+		$query = 'INSERT INTO conntrack (avg, total, min, max) '.
+		         'VALUES (:avg, :total, :min, :max)';
+
+		$q = $pdo->prepare($query);
+		$q->bindParam(':avg',    $data['avg']);
+		$q->bindParam(':total',  $data['total']);
+		$q->bindParam(':min',    $data['min']);
+		$q->bindParam(':max',    $data['max']);
+
+		$q->execute();
+
+		var_dump($q->errorInfo());
+	}
+	catch(PDOException $e) {
+    	debug($e->getMessage(), 1);
+	}
+}
 
 
 sample(60, 1);
 
-$out = json_encode(array(
-	'date'  => date("d-m-Y-h:m"),
-	'epoch' => date("U"),
-	'avg'   => $avg,
-	'count' => $count,
-	'total' => $total,
-	'min'   => $min,
-	'max'   => $max,
-));
+$data = array(
+		'date'   => date("Y-m-d H:m:s"),
+		'avg'    => round($total / $count),
+		'count'  => $count,
+		'total'  => $total,
+		'min'    => $min,
+		'max'    => $max,
+);
 
-printf($out);
+// more debug stuff
+foreach ($data as $k => $v) {
+	debug(sprintf("%-15s\t%s", "{$k}:", $v));
+}
+
+
+if ($format === 'json'){
+	echo json_encode($data);
+	$ret = 0;
+}
+elseif ($format === 'sql'){
+	$ret = sql_insert($data);
+}
+
+exit($ret);
+
