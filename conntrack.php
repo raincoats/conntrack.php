@@ -86,12 +86,12 @@ function sql_insert($data)
 		$q = $pdo->prepare($query);
 		$q->bindParam(':avg',    $data['avg']);
 		$q->bindParam(':total',  $data['total']);
-		$q->bindParam(':min',    $data['min']);
-		$q->bindParam(':max',    $data['max']);
 
 		$q->execute();
 
-		var_dump($q->errorInfo());
+		$error->errorInfo()
+		if (! is_null($error[2]))
+			die(debug($error[3], 1));
 	}
 	catch(PDOException $e) {
     	debug($e->getMessage(), 1);
@@ -104,10 +104,6 @@ sample(60, 1);
 $data = array(
 		'date'   => date("Y-m-d H:m:s"),
 		'avg'    => round($total / $count),
-		'count'  => $count,
-		'total'  => $total,
-		'min'    => $min,
-		'max'    => $max,
 );
 
 // more debug stuff
