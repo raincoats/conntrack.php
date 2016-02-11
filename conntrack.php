@@ -1,79 +1,87 @@
 <?php
 
 require_once 'butts.php';
+include_once 'config.php';
 
-$min =       true;
-$max =       true;
-$avg =       0;
-$count =     0;
-$total     = 0;
-$total_avg = 0;
-
-
-function minmax($i)
-{
-	global $min, $max;
-
-	$min = $min < $i? $min : $i;
-	$max = $max > $i? $max : $i;
-}
+if (posix_uname()['sysname'] === 'Darwin')
+	define('DEV_MODE', true);
 
 
 function get_connections()
 {
 	if (is_dir('/sys')){
+		// if this is linux (ie. not dev)
 		$conns = file_get_contents('/proc/sys/net/netfilter/nf_conntrack_count');
-		return intval($conns);
+		$conns = intval($conns);
 	}
 	else {
-		return rand(1989, 1998);
+		// dev
+		$conns = rand(1, 100);
 	}
+	debug(sprintf("%7d connections", $conns), 3);
+
+	return $conns;
 }
 
-function get_averages($int)
+
+function sample($count=60, $interval=1)
 {
-	global $total, $count;
-
-	minmax($int);
-
-	// averages
-	$total += $int;
-	$avg = $int / $count;
-
-	return true;
-}
-
-function sample($n=10, $interval=1)
-{
-	global $count;
+	$avg =   0;
+	$total = 0;
 
 	// fripping microseconds
 	$interval = $interval * 1000000;
 
 	$samples = array();
 
-	for ($i=0; $i<$n; $i++){
-		$conns = get_connections();
-		$sample[] = $conns;
-		debug("({$i}) {$conns} connections", 3);
-		$count++;
+	for ($i=0; $i<$count; $i++){
+		$total += get_connections();
 		usleep($interval);
 	}
-	array_map('get_averages', $sample);
+
+	$avg = round($total / $count);
+	debug(sprintf("%s   average: %d", date("H:M"), $avg), 3); 
+
+	return $avg;
+}
+
+
+function sql_insert($avg)
+{
+	global $sql, $pdo;
+
+	try {
+		$q = $pdo->prepare('INSERT INTO conntrack (avg) VALUES (:avg)');
+		$q->bindParam(':avg', $avg);
+
+		$q->execute();
+
+		if (! is_null($error = $q->errorInfo()[2]))
+			die(debug($error, 1));
+	}
+	catch(PDOException $e) {
+    	debug($e->getMessage(), 1);
+	}
 }
 
 
 
-sample(60, 1);
 
-$out = json_encode(array(
-	'date'  => date("d-m-Y-h:m"),
-	'epoch' => date("U"),
-	'avg'   => $avg,
-	'count' => $count,
-	'total' => $total,
-	'min'   => $min,
-	'max'   => $max,
-));
 
-printf($out);
+$pdo = new PDO(
+	"mysql:host={$sql['host']};dbname={$sql['schema']}",
+	$sql['user'],
+	$sql['pass']
+);
+
+while (true) {
+	if (defined('DEV_MODE')) {
+		sql_insert(sample(60, 0.000001));
+		sleep(1);
+	}
+	else {
+		sql_insert(sample(60, 1));
+	}
+}
+
+
