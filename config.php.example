@@ -1,0 +1,10 @@
+<?php
+
+/* rename this file to "config.php", after you fill it out */
+
+$sql = array(
+	'host'      => 'localhost',
+	'schema'    => 'your_database',
+	'user'      => 'your_user',
+	'pass'      => 'your_password',
+);
