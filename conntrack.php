@@ -5,9 +5,10 @@ require_once 'butts.php';
 $min =       true;
 $max =       true;
 $avg =       0;
-$total_avg = 0;
-$total =     0;
 $count =     0;
+$total     = 0;
+$total_avg = 0;
+
 
 function minmax($i)
 {
@@ -31,13 +32,13 @@ function get_connections()
 
 function get_averages($int)
 {
-	global $avg, $total_avg, $total, $count;
+	global $total, $count;
 
 	minmax($int);
 
 	// averages
 	$total += $int;
-	$avg = $total / $count;
+	$avg = $int / $count;
 
 	return true;
 }
@@ -46,7 +47,7 @@ function sample($n=10, $interval=1)
 {
 	global $count;
 
-	// fucking microseconds
+	// fripping microseconds
 	$interval = $interval * 1000000;
 
 	$samples = array();
@@ -61,10 +62,26 @@ function sample($n=10, $interval=1)
 	array_map('get_averages', $sample);
 }
 
-sample(5, 0.5);
+
+
+sample(60, 1);
+
+$out = json_encode(array(
+	'date'  => date("d-m-Y-h:m"),
+	'epoch' => date("U"),
+	'avg'   => $avg,
+	'count' => $count,
+	'total' => $total,
+	'min'   => $min,
+	'max'   => $max,
+));
+
+printf($out);
+/*
 
 printf("%-10s %d\n", "average:", $avg);
 printf("%-10s %d\n", "count:", $count);
 printf("%-10s %d\n", "total:", $total);
 printf("%-10s %d/%d\n", "min/max:", $min, $max);
 
+*/
