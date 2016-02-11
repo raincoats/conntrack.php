@@ -80,16 +80,12 @@ function sql_insert($data)
 		$pdo = new PDO("mysql:host={$sql['host']};dbname={$sql['schema']}",
 						 $sql['user'], $sql['pass']);
 
-		$query = 'INSERT INTO conntrack (avg, total, min, max) '.
-		         'VALUES (:avg, :total, :min, :max)';
-
-		$q = $pdo->prepare($query);
+		$q = $pdo->prepare('INSERT INTO conntrack (avg) VALUES (:avg)');
 		$q->bindParam(':avg',    $data['avg']);
-		$q->bindParam(':total',  $data['total']);
 
 		$q->execute();
 
-		$error->errorInfo()
+		$error = $q->errorInfo();
 		if (! is_null($error[2]))
 			die(debug($error[3], 1));
 	}
