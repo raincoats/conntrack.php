@@ -77,11 +77,3 @@ $out = json_encode(array(
 ));
 
 printf($out);
-/*
-
-printf("%-10s %d\n", "average:", $avg);
-printf("%-10s %d\n", "count:", $count);
-printf("%-10s %d\n", "total:", $total);
-printf("%-10s %d/%d\n", "min/max:", $min, $max);
-
-*/
