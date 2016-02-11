@@ -3,90 +3,61 @@
 require_once 'butts.php';
 include_once 'config.php';
 
-$min =       true;
-$max =       true;
-$avg =       0;
-$count =     0;
-$total =     0;
-$total_avg = 0;
-
-
-
-if (isset($argv[1]) and ($argv[1] === 'sql'))
-	$format = 'sql';
-else
-	$format = 'json';
-
-
-function minmax($i)
-{
-	global $min, $max;
-
-	$min = $min < $i? $min : $i;
-	$max = $max > $i? $max : $i;
-}
+if (posix_uname()['sysname'] === 'Darwin')
+	define('DEV_MODE', true);
 
 
 function get_connections()
 {
 	if (is_dir('/sys')){
+		// if this is linux (ie. not dev)
 		$conns = file_get_contents('/proc/sys/net/netfilter/nf_conntrack_count');
-		return intval($conns);
+		$conns = intval($conns);
 	}
 	else {
-		// debug
-		return rand(1, 100);
+		// dev
+		$conns = rand(1, 100);
 	}
+	debug(sprintf("%7d connections", $conns), 3);
+
+	return $conns;
 }
 
-function get_averages($int)
+
+function sample($count=60, $interval=1)
 {
-	global $total, $count;
-
-	minmax($int);
-
-	// averages
-	$total += $int;
-	$avg = $int / $count;
-
-	return true;
-}
-
-function sample($n=10, $interval=1)
-{
-	global $count;
+	$avg =   0;
+	$total = 0;
 
 	// fripping microseconds
 	$interval = $interval * 1000000;
 
 	$samples = array();
 
-	for ($i=0; $i<$n; $i++){
-		$conns = get_connections();
-		$sample[] = $conns;
-		debug("({$i}) {$conns} connections", 3);
-		$count++;
+	for ($i=0; $i<$count; $i++){
+		$total += get_connections();
 		usleep($interval);
 	}
-	array_map('get_averages', $sample);
+
+	$avg = round($total / $count);
+	debug(sprintf("%s   average: %d", date("H:m"), $avg), 3);
+
+	return $avg;
 }
 
-function sql_insert($data)
+
+function sql_insert($avg)
 {
-	global $sql;
+	global $sql, $pdo;
 
 	try {
-		$pdo = new PDO("mysql:host={$sql['host']};dbname={$sql['schema']}",
-						 $sql['user'], $sql['pass']);
-
 		$q = $pdo->prepare('INSERT INTO conntrack (avg) VALUES (:avg)');
-		$q->bindParam(':avg',    $data['avg']);
+		$q->bindParam(':avg', $avg);
 
 		$q->execute();
 
-		$error = $q->errorInfo();
-		if (! is_null($error[2]))
-			die(debug($error[3], 1));
+		if (! is_null($error = $q->errorInfo()[2]))
+			die(debug($error, 1));
 	}
 	catch(PDOException $e) {
     	debug($e->getMessage(), 1);
@@ -94,26 +65,23 @@ function sql_insert($data)
 }
 
 
-sample(60, 1);
 
-$data = array(
-		'date'   => date("Y-m-d H:m:s"),
-		'avg'    => round($total / $count),
+
+
+$pdo = new PDO(
+	"mysql:host={$sql['host']};dbname={$sql['schema']}",
+	$sql['user'],
+	$sql['pass']
 );
 
-// more debug stuff
-foreach ($data as $k => $v) {
-	debug(sprintf("%-15s\t%s", "{$k}:", $v));
+while (true) {
+	if (defined('DEV_MODE')) {
+		sql_insert(sample(60, 0.000001));
+		sleep(1);
+	}
+	else {
+		sql_insert(sample(60, 1));
+	}
 }
 
-
-if ($format === 'json'){
-	echo json_encode($data);
-	$ret = 0;
-}
-elseif ($format === 'sql'){
-	$ret = sql_insert($data);
-}
-
-exit($ret);
 
