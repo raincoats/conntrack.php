@@ -1,7 +1,7 @@
 <?php
 
 require_once 'butts.php';
-include_once 'config.php';
+require_once 'config.php';
 
 if (posix_uname()['sysname'] === 'Darwin')
 	define('DEV_MODE', true);
