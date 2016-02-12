@@ -4,9 +4,9 @@ require_once 'connquery.php';
 
 // $data = json_decode(file_get_contents('data.json'));
 // (int) $item->conns / 1000
-$data = get_recent(60);
+$data = get_recent(30);
 $rows = '';
-$row_format = "<div style='height: %dpx !important; order: %d'></div>";
+$row_format = "<div style='height: %dpx !important; order: %d'>%s</div>";
 $max_format = "<div class='max' style='height: %dpx !important; order: %d'>%s</div>";
 $max = false;
 $order = 0;
@@ -20,12 +20,14 @@ foreach ($data as $item) {
 foreach ($data as $item) {
 	$order++;
 	$conns = $item['conns'];
-	if ($item['conns'] === $max){
-		$rows .= sprintf($max_format, (int)$conns/1000, $order, false?$conns:'');
-	}
-	else{
-		$rows .= sprintf($row_format, (int)$conns/1000, $order);
-	}
+		
+		$rows .= sprintf(
+			"<div class='%s' style='height: %dpx; order: %d'>%dk</div>",
+			($conns === $max)? 'max':'row',
+			(int) $conns / 250,
+			$order,
+			(int) $conns / 1000
+		);
 }
 
 ?>
@@ -41,6 +43,11 @@ foreach ($data as $item) {
 		</style>
 	</head>
 	<body>
+		<header>
+			<h1>Open connections over the last half hour</h1>
+			<h3>x axis: 1 bar = 1 minute</h3>
+			<h3>y axis: connections</h3>
+		</header>
 		<div class="chart">
 			<?php echo $rows; ?>
 		</div>
