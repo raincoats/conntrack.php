@@ -31,7 +31,8 @@ button {
 }
 
 .chart {
-  width: calc(80vw + 60px);
+/*  width: calc(80vw + 60px);*/
+	width: calc(100vw - 20px);
   vertical-align: bottom;
 	height: 50vh;
   margin: 0 auto;

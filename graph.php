@@ -20,7 +20,7 @@ foreach ($data as $item) {
 foreach ($data as $item) {
 	$order++;
 	$conns = $item['conns'];
-		
+
 		$rows .= sprintf(
 			"<div class='%s' style='height: %dpx; order: %d'>%dk</div>",
 			($conns === $max)? 'max':'row',
@@ -40,16 +40,24 @@ foreach ($data as $item) {
 			/*content: "<?php echo $max; ?>";*/
 			color: #000000;
 		}
+#wrap {
+	min-height: 85vh;
+}
 		</style>
 	</head>
 	<body>
-		<header>
-			<h1>Open connections over the last half hour</h1>
-			<h3>x axis: 1 bar = 1 minute</h3>
-			<h3>y axis: connections</h3>
+	<div id="wrap">
+		<header style="margin-left: 4rem;">
+			<h1>Connections to time.apricot.pictures<br/>over the last half hour</h1>
+			<h3>x axis: 1 bar = 1 minute<br/>y axis: connections</h3>
 		</header>
 		<div class="chart">
 			<?php echo $rows; ?>
 		</div>
+	</div>
+		<footer style="margin-left: 4rem;">
+		<h4><?php echo "at ".date("H:i e")." time<br/>".
+                       "at ".date("U")." seconds since Jan 1, 1970"; ?></h4>
+		</footer>
 	</body>
 </html>
