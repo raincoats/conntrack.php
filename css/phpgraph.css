@@ -42,7 +42,7 @@ button {
 
 }
 
-.chart div {
+.row {
   flex-wrap: nowrap;
   /*float: left;*/
   /*min-width: 1vw;*/
@@ -62,3 +62,48 @@ button {
 .max {
   background-color: hsla(7, 44%, 49%, 1.0) !important;
 }
+
+.row, .max {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  flex-direction: column;
+}
+
+.row-value, .row-time {
+  background-color: unset;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
+.row-value{
+  align-self: flex-start;
+  order: 1;
+  margin-top: 0.5rem;
+}
+
+.row-time {
+  align-self: flex-end;
+  order: 2;
+  margin-bottom: 0.25rem;
+}
+
+/* keep every third clock, hide the others */
+.chart > :not(.row:nth-child(3n + 1)) > .row-time {
+  color: hsla(207, 44%, 49%, 1.0);
+}
+.chart > .max:not(:nth-child(3n + 1)) > .row-time {
+  color: hsla(7, 44%, 49%, 1.0);
+}
+/* bring them out as well */
+.chart > .row:nth-child(3n + 1) > .row-time,
+.chart > .max:nth-child(3n + 1) > .row-time {
+  color : #000000;
+  /*text-align: left;*/
+  margin-bottom: -1rem;
+  /*border-left: solid 1px black;
+  border-right: solid 1px black;
+*/
+}
+
