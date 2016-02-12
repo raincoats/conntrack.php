@@ -7,4 +7,10 @@
 !/LICENSE.md
 !/schema.sql
 !/config.php.example
+!/css
+!/css/*
+!/js
+!/js/*
+!/conngraph.html
+!/graph.php
 

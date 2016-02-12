@@ -1,0 +1,46 @@
+
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  margin: 0;
+  position: relative;
+  padding: 0;
+
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke: hsla(207, 44%, 49%, 1.0);
+  stroke-width: 1.5px;
+}
+
+button {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+}
+
+.chart {
+	width: 100vw;
+	height: 100vh;
+}
+
+.chart div {
+  font: 10px sans-serif;
+  background-color: hsla(207, 44%, 49%, 1.0);
+  /*text-align: right;*/
+  padding: 3px;
+  margin: 1px;
+  color: white;
+}
+

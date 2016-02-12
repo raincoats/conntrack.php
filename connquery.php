@@ -26,6 +26,35 @@ function get_recent($limit)
 	return array_reverse($output);
 }
 
+/* generate a csv file, for use with d3. */
+function csv($data)
+{
+	if (! is_array($data))
+		die(debug('$data in tsv() was not an array!', 1));
+
+	$file = "time,connections\n";
+
+	foreach ($data as $item) {
+		$file .= sprintf("%s,%s\n", $item['time'], $item['conns']);
+	}
+
+	return file_put_contents('data.csv', $file);
+}
+
+function json($data)
+{
+	$out = array(
+		['time', 'connections'],
+	);
+
+	foreach ($data as $item) {
+		$out[] = [$item['time'], $item['conns']];
+	}
+
+	$out = json_encode($data);
+	return file_put_contents('data.json', $out);
+}
+
 $query = <<< 'EOF'
 SELECT    ctime AS time,
           TIME_FORMAT(ctime, '%H') AS h,
@@ -34,13 +63,23 @@ SELECT    ctime AS time,
 FROM      conntrack
 ORDER BY  ctime DESC
 EOF;
+$query = <<< 'EOF'
+SELECT    ctime 	AS time,
+          avg   	AS conns
+FROM      conntrack
+ORDER BY  ctime 	DESC
+EOF;
 
 
-$entries = get_recent(50);
-
+//$logitems = get_recent(50);
+//var_dump($logitems);
+//csv($logitems);
+//json($logitems);
+/*
 foreach ($entries as $entry) {
 	debug(sprintf("time: %-15s\th: %d\tm: %d\tavg: %-15s", 
 		          $entry['time'], $entry['hour'], $entry['minute'], $entry['avg']));
 }
 
 echo json_encode($entries);
+*/
